@@ -1,0 +1,3 @@
+- bit board move generation (https://rhysre.net/2019/01/15/magic-bitboards.html)
+	- attacking masks
+	- 
