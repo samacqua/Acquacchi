@@ -1,107 +1,181 @@
 // board.c
 
 #include "stdio.h"
-#include "defs.h"
 
-int CheckBoard(const S_BOARD *pos) {
-     
-    int sq64,t_piece,t_pce_num,sq120,pcount;
+#include "defs.h"
+#include "protos.h"
+#include "data.h"
+
+int PceListOk(const BoardState *pos) {
+    int pce = wP;
+    int sq;
+    int num;
+    for(pce = wP; pce <= bK; ++pce) {
+        if(pos->pceNum[pce]<0 || pos->pceNum[pce]>=10) return FALSE;
+    }
     
-    U64 t_whitebb = 0ULL;
-    U64 t_blackbb = 0ULL;
-    U64 t_pawnbb = 0ULL;
-    U64 t_knightbb = 0ULL;
-    U64 t_bishopbb = 0ULL;
-    U64 t_rookbb = 0ULL;
-    U64 t_queenbb = 0ULL;
-    U64 t_kingbb = 0ULL;
+    if(pos->pceNum[wK]!=1 || pos->pceNum[bK]!=1) return FALSE;
     
-    t_whitebb = pos->bitboards[0];
-    t_blackbb = pos->bitboards[1];
-    t_pawnbb = pos->bitboards[2];
-    t_knightbb = pos->bitboards[3];
-    t_bishopbb = pos->bitboards[4];
-    t_rookbb = pos->bitboards[5];
-    t_queenbb = pos->bitboards[6];
-    t_kingbb = pos->bitboards[7];
-    
-    // check bitboards
-    ASSERT(t_whitebb - pos->bitboards[0]==0);
-    ASSERT(t_blackbb - pos->bitboards[1]==0);
-    ASSERT(t_pawnbb - pos->bitboards[2]==0);
-    ASSERT(t_knightbb - pos->bitboards[3]==0);
-    ASSERT(t_bishopbb - pos->bitboards[4]==0);
-    ASSERT(t_rookbb - pos->bitboards[5]==0);
-    ASSERT(t_queenbb - pos->bitboards[6]==0);
-    ASSERT(t_kingbb - pos->bitboards[7]==0);
-    
-    // checking other values
-    
-    t_whitebb |= (1ULL << SQ64(D2));
-    t_pawnbb |= (1ULL << SQ64(D2));
-    t_pawnbb |= (1ULL << SQ64(H2));
-    PrintBitBoard(t_whitebb&t_pawnbb);
-    PrintBitBoard(t_pawnbb);
-    
-    ASSERT(pos->side==WHITE || pos->side==BLACK);
-    ASSERT(GeneratePosKey(pos)==pos->posKey);
-//    ASSERT(pos->enPas==NO_SQ || ( RanksBrd[pos->enPas]==RANK_6 && pos->side == WHITE)
-//         || ( RanksBrd[pos->enPas]==RANK_3 && pos->side == BLACK));
-         
+    for(pce = wP; pce <= bK; ++pce) {
+        for(num = 0; num < pos->pceNum[pce]; ++num) {
+            sq = pos->pieceList[pce][num];
+            if(!SqOnBoard(sq)) return FALSE;
+        }
+    }
     return TRUE;
 }
 
-void UpdateBitBoards(S_BOARD *pos) {
+// checking all lists and current board state are consistent
+int CheckBoard(const BoardState *pos) {
     
-    int piece,sq,index,color;
+    int t_pceNum[13] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    int t_bigPce[2] = { 0, 0};
+    int t_majPce[2] = { 0, 0};
+    int t_minPce[2] = { 0, 0};
+    int t_material[2] = { 0, 0};
     
+    int sq64,t_piece,t_pce_num,sq120,colour,pcount;
+    
+    U64 t_pawns[3] = {0ULL, 0ULL, 0ULL};
+    
+    t_pawns[WHITE] = pos->pawns[WHITE];
+    t_pawns[BLACK] = pos->pawns[BLACK];
+    t_pawns[BOTH] = pos->pawns[BOTH];
+    
+    // check piece lists
+    for(t_piece = wP; t_piece <= bK; ++t_piece) {
+        for(t_pce_num = 0; t_pce_num < pos->pceNum[t_piece]; ++t_pce_num) {
+            sq120 = pos->pieceList[t_piece][t_pce_num];
+            ASSERT(pos->pieces[sq120]==t_piece);
+        }
+    }
+    
+    // check piece count and other counters
+    for(sq64 = 0; sq64 < 64; ++sq64) {
+        sq120 = SQ120(sq64);
+        t_piece = pos->pieces[sq120];
+        t_pceNum[t_piece]++;
+        colour = PieceCol[t_piece];
+        if( PieceBig[t_piece] == TRUE) t_bigPce[colour]++;
+        if( PieceMin[t_piece] == TRUE) t_minPce[colour]++;
+        if( PieceMaj[t_piece] == TRUE) t_majPce[colour]++;
+        
+        t_material[colour] += PieceVal[t_piece];
+    }
+    
+    for(t_piece = wP; t_piece <= bK; ++t_piece) {
+        ASSERT(t_pceNum[t_piece]==pos->pceNum[t_piece]);
+    }
+    
+    // check bitboards count
+    pcount = CNT(t_pawns[WHITE]);
+    ASSERT(pcount == pos->pceNum[wP]);
+    pcount = CNT(t_pawns[BLACK]);
+    ASSERT(pcount == pos->pceNum[bP]);
+    pcount = CNT(t_pawns[BOTH]);
+    ASSERT(pcount == (pos->pceNum[bP] + pos->pceNum[wP]));
+    
+    // check bitboards squares
+    while(t_pawns[WHITE]) {
+        sq64 = POP(&t_pawns[WHITE]);
+        ASSERT(pos->pieces[SQ120(sq64)] == wP);
+    }
+    
+    while(t_pawns[BLACK]) {
+        sq64 = POP(&t_pawns[BLACK]);
+        ASSERT(pos->pieces[SQ120(sq64)] == bP);
+    }
+    
+    while(t_pawns[BOTH]) {
+        sq64 = POP(&t_pawns[BOTH]);
+        ASSERT( (pos->pieces[SQ120(sq64)] == bP) || (pos->pieces[SQ120(sq64)] == wP) );
+    }
+    
+    ASSERT(t_material[WHITE]==pos->material[WHITE] && t_material[BLACK]==pos->material[BLACK]);
+    ASSERT(t_minPce[WHITE]==pos->minPce[WHITE] && t_minPce[BLACK]==pos->minPce[BLACK]);
+    ASSERT(t_majPce[WHITE]==pos->majPce[WHITE] && t_majPce[BLACK]==pos->majPce[BLACK]);
+    ASSERT(t_bigPce[WHITE]==pos->bigPce[WHITE] && t_bigPce[BLACK]==pos->bigPce[BLACK]);
+    
+    ASSERT(pos->side==WHITE || pos->side==BLACK);
+    ASSERT(GenerateHashKey(pos)==pos->hashKey);
+    
+    ASSERT(pos->enPas==NO_SQ || ( RanksBrd[pos->enPas]==RANK_6 && pos->side == WHITE)
+           || ( RanksBrd[pos->enPas]==RANK_3 && pos->side == BLACK));
+    
+    ASSERT(pos->pieces[pos->KingSq[WHITE]] == wK);
+    ASSERT(pos->pieces[pos->KingSq[BLACK]] == bK);
+    
+    ASSERT(pos->castlePerm >= 0 && pos->castlePerm <= 15);
+    
+    ASSERT(PceListOk(pos));
+    
+    return TRUE;
+}
+
+void UpdateListsMaterial(BoardState *pos) {
+    
+    int piece,sq,index,colour;
+    
+    // loop through all squares on the board
     for(index = 0; index < BRD_SQ_NUM; ++index) {
-        sq = SQ64(index);
+        sq = index;
         piece = pos->pieces[index];
+        ASSERT(PceValidEmptyOffbrd(piece));
+        
+        // if there is a piece on the square
         if(piece!=OFFBOARD && piece!= EMPTY) {
-            color = PieceCol[piece];
+            colour = PieceCol[piece];
+            ASSERT(SideValid(colour));
             
-            pos->material[color] += PieceVal[piece];
+            if( PieceBig[piece] == TRUE) pos->bigPce[colour]++;
+            if( PieceMin[piece] == TRUE) pos->minPce[colour]++;
+            if( PieceMaj[piece] == TRUE) pos->majPce[colour]++;
             
-            SETBIT(pos->bitboards[color], sq);  // sets white and black bb
+            pos->material[colour] += PieceVal[piece];
             
-            if (piece==wP || piece==bP) {
-                SETBIT(pos->bitboards[2], sq);
-            } else if (piece==wN || piece==bN) {
-                SETBIT(pos->bitboards[3], sq);
-            } else if (piece==wB || piece==bB) {
-                SETBIT(pos->bitboards[4], sq);
-            } else if (piece==wR || piece==bR) {
-                SETBIT(pos->bitboards[5], sq);
-            } else if (piece==wQ || piece==bQ) {
-                SETBIT(pos->bitboards[6], sq);
-            } else if (piece==wK || piece==bK) {
-                SETBIT(pos->bitboards[7], sq);
+            ASSERT(pos->pceNum[piece] < 10 && pos->pceNum[piece] >= 0);
+            
+            // add the piece and square to end of piece list, increment count of piece list
+            pos->pieceList[piece][pos->pceNum[piece]++] = sq;
+            
+            if(piece==wK) pos->KingSq[WHITE] = sq;
+            if(piece==bK) pos->KingSq[BLACK] = sq;
+            
+            // if pawn update set bit on bitboard
+            if(piece==wP) {
+                SETBIT(pos->pawns[WHITE],SQ64(sq));
+                SETBIT(pos->pawns[BOTH],SQ64(sq));
+            } else if(piece==bP) {
+                SETBIT(pos->pawns[BLACK],SQ64(sq));
+                SETBIT(pos->pawns[BOTH],SQ64(sq));
             }
         }
     }
 }
 
-int ParseFen(char *fen, S_BOARD *pos) {
-
+// Forsyth-Edwards Notation: https://www.chessprogramming.org/Forsyth-Edwards_Notation
+// starting FEN: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+int ParseFen(char *fen, BoardState *pos) {
+    
     ASSERT(fen!=NULL);
     ASSERT(pos!=NULL);
-
+    
     int  rank = RANK_8;
     int  file = FILE_A;
-    int  piece = 0;
-    int  count = 0;
+    int  piece = 0; // != 0 if find a piece
+    int  count = 0; // # of empty spaces
     int  i = 0;
     int  sq64 = 0;
     int  sq120 = 0;
-
+    
     ResetBoard(pos);
     
-    // Board configuration
-
+    // rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
     while ((rank >= RANK_1) && *fen) {
         count = 1;
         switch (*fen) {
+                
+                // found a piece
             case 'p': piece = bP; break;
             case 'r': piece = bR; break;
             case 'n': piece = bN; break;
@@ -114,7 +188,8 @@ int ParseFen(char *fen, S_BOARD *pos) {
             case 'B': piece = wB; break;
             case 'K': piece = wK; break;
             case 'Q': piece = wQ; break;
-
+                
+                // # empty spaces
             case '1':
             case '2':
             case '3':
@@ -124,21 +199,24 @@ int ParseFen(char *fen, S_BOARD *pos) {
             case '7':
             case '8':
                 piece = EMPTY;
-                count = *fen - '0'; // difference in ASCII values gives integer number
+                // difference is ascii values is value. ex: '1'-'0' = 1
+                count = *fen - '0';
                 break;
-
+                
+                // new rank or end of piece setup
             case '/':
             case ' ':
                 rank--;
                 file = FILE_A;
                 fen++;
                 continue;
-
+                
             default:
                 printf("FEN error \n");
                 return -1;
         }
-
+        
+        // loop through board, add found piece to its position
         for (i = 0; i < count; i++) {
             sq64 = rank * 8 + file;
             sq120 = SQ120(sq64);
@@ -152,11 +230,11 @@ int ParseFen(char *fen, S_BOARD *pos) {
     
     ASSERT(*fen == 'w' || *fen == 'b');
     
-    // Side to Move
+    // if character is white, then current side is white
     pos->side = (*fen == 'w') ? WHITE : BLACK;
     fen += 2;
     
-    // Castle permissions
+    // add castling permissions
     for (i = 0; i < 4; i++) {
         if (*fen == ' ') {
             break;
@@ -166,7 +244,7 @@ int ParseFen(char *fen, S_BOARD *pos) {
             case 'Q': pos->castlePerm |= WQCA; break;
             case 'k': pos->castlePerm |= BKCA; break;
             case 'q': pos->castlePerm |= BQCA; break;
-            default:         break;
+            default:	     break;
         }
         fen++;
     }
@@ -174,8 +252,9 @@ int ParseFen(char *fen, S_BOARD *pos) {
     
     ASSERT(pos->castlePerm>=0 && pos->castlePerm <= 15);
     
-    // En passant
+    // set en passant square
     if (*fen != '-') {
+        // difference in ascii values yields file and rank
         file = fen[0] - 'a';
         rank = fen[1] - '1';
         
@@ -185,47 +264,66 @@ int ParseFen(char *fen, S_BOARD *pos) {
         pos->enPas = FR2SQ(file,rank);
     }
     
-    // generate hash key
-    pos->posKey = GeneratePosKey(pos);
+    pos->hashKey = GenerateHashKey(pos);
+    
+    UpdateListsMaterial(pos);
     
     return 0;
 }
 
-void ResetBoard(S_BOARD *pos) {
-
+// empty board and reset all position attributes
+void ResetBoard(BoardState *pos) {
+    
     int index = 0;
     
+    // set 64 middle squares to empty and outside squares to offboard
     for(index = 0; index < BRD_SQ_NUM; ++index) {
         pos->pieces[index] = OFFBOARD;
     }
-    
     for(index = 0; index < 64; ++index) {
         pos->pieces[SQ120(index)] = EMPTY;
     }
     
-    for(index=0; index < 8; index++) {
-        pos->bitboards[index] = 0ULL;
+    // empty piece categories
+    for(index = 0; index < 2; ++index) {
+        pos->bigPce[index] = 0;
+        pos->majPce[index] = 0;
+        pos->minPce[index] = 0;
+        pos->material[index] = 0;
     }
+    
+    // empty pawn count
+    for(index = 0; index < 3; ++index) {
+        pos->pawns[index] = 0ULL;
+    }
+    
+    // empty piece count
+    for(index = 0; index < 13; ++index) {
+        pos->pceNum[index] = 0;
+    }
+    
+    // reset rest of position attributes
+    pos->KingSq[WHITE] = pos->KingSq[BLACK] = NO_SQ;
     
     pos->side = BOTH;
     pos->enPas = NO_SQ;
     pos->fiftyMove = 0;
     
-    pos->searchPly = 0;
-    pos->movePly = 0;
+    pos->ply = 0;
+    pos->hisPly = 0;
     
     pos->castlePerm = 0;
     
-    pos->posKey = 0ULL;
-    
+    pos->hashKey = 0ULL;
 }
 
-void PrintBoard(const S_BOARD *pos) {
+void PrintBoard(const BoardState *pos) {
     
     int sq,file,rank,piece;
     
     printf("\nGame Board:\n\n");
     
+    // Iterate backwards so A rank on bottom when printing board
     for(rank = RANK_8; rank >= RANK_1; rank--) {
         printf("%d  ",rank+1);
         for(file = FILE_A; file <= FILE_H; file++) {
@@ -235,19 +333,68 @@ void PrintBoard(const S_BOARD *pos) {
         }
         printf("\n");
     }
-    
     printf("\n   ");
+    
     for(file = FILE_A; file <= FILE_H; file++) {
         printf("%3c",'a'+file);
     }
     printf("\n");
+    
+    // print other position information
     printf("side:%c\n",SideChar[pos->side]);
     printf("enPas:%d\n",pos->enPas);
     printf("castle:%c%c%c%c\n",
-            pos->castlePerm & WKCA ? 'K' : '-',
-            pos->castlePerm & WQCA ? 'Q' : '-',
-            pos->castlePerm & BKCA ? 'k' : '-',
-            pos->castlePerm & BQCA ? 'q' : '-'
-            );
-    printf("PosKey:%llX\n",pos->posKey);
+           pos->castlePerm & WKCA ? 'K' : '-',
+           pos->castlePerm & WQCA ? 'Q' : '-',
+           pos->castlePerm & BKCA ? 'k' : '-',
+           pos->castlePerm & BQCA ? 'q' : '-'
+           );
+    printf("hashKey:%llX\n",pos->hashKey);
+}
+
+// set whats in a8 to a1 and vice versa, a7->a2, b8->b1, etc...
+// used to check that evaluation stays symmetrical
+void MirrorBoard(BoardState *pos) {
+    
+    int tempPiecesArray[64];
+    int tempSide = pos->side^1;
+    int SwapPiece[13] = { EMPTY, bP, bN, bB, bR, bQ, bK, wP, wN, wB, wR, wQ, wK };
+    int tempCastlePerm = 0;
+    int tempEnPas = NO_SQ;
+    
+    int sq;
+    int tp;
+    
+    // switch castling permissions
+    if (pos->castlePerm & WKCA) tempCastlePerm |= BKCA;
+    if (pos->castlePerm & WQCA) tempCastlePerm |= BQCA;
+    if (pos->castlePerm & BKCA) tempCastlePerm |= WKCA;
+    if (pos->castlePerm & BQCA) tempCastlePerm |= WQCA;
+    
+    // mirror en passant square
+    if (pos->enPas != NO_SQ)  {
+        tempEnPas = SQ120(Mirror64[SQ64(pos->enPas)]);
+    }
+    
+    // get pieces on mirrored board
+    for (sq = 0; sq < 64; sq++) {
+        tempPiecesArray[sq] = pos->pieces[SQ120(Mirror64[sq])];
+    }
+    
+    ResetBoard(pos);
+    
+    for (sq = 0; sq < 64; sq++) {
+        tp = SwapPiece[tempPiecesArray[sq]];
+        pos->pieces[SQ120(sq)] = tp;
+    }
+    
+    // switch side, castle permissions, and en passant square
+    pos->side = tempSide;
+    pos->castlePerm = tempCastlePerm;
+    pos->enPas = tempEnPas;
+    
+    pos->hashKey = GenerateHashKey(pos);
+    UpdateListsMaterial(pos);
+    
+    ASSERT(CheckBoard(pos));
 }
