@@ -23,7 +23,7 @@ int main() {
     setbuf(stdin, NULL);
     setbuf(stdout, NULL);
     
-    printf("Welcome to Simple Engine for Chess by Sam! Type 'secs' for terminal mode...\n");
+    printf("Welcome to SECS - a Simple Engine for Chess by Sam! Type 'secs' for terminal mode...\n");
     
     char line[256];
     while (TRUE) {

@@ -17,13 +17,13 @@ const int BiDir[4] = { -9, -11, 11, 9 };
 const int KiDir[8] = { -1, -10,    1, 10, -9, -11, 11, 9 };
 
 // returns if a given square is attcked
-int SqAttacked(const int sq, const int side, const BoardState *pos) {
+int IsSqAttacked(const int sq, const int side, const BoardState *pos) {
     
     int pce,index,t_sq,dir;
     
     ASSERT(SqOnBoard(sq));
     ASSERT(SideValid(side));
-    ASSERT(CheckBoard(pos));
+    ASSERT(BoardListsConsistent(pos));
     
     // pawns
     if(side == WHITE) {
@@ -39,7 +39,7 @@ int SqAttacked(const int sq, const int side, const BoardState *pos) {
     // knights
     for(index = 0; index < 8; ++index) {
         pce = pos->pieces[sq + KnDir[index]];
-        ASSERT(PceValidEmptyOffbrd(pce));
+        ASSERT(PieceEmptyOrOffbrd(pce));
         if(pce != OFFBOARD && IsKn(pce) && PieceCol[pce]==side) {
             return TRUE;
         }
@@ -52,7 +52,7 @@ int SqAttacked(const int sq, const int side, const BoardState *pos) {
         t_sq = sq + dir;
         ASSERT(SqIs120(t_sq));
         pce = pos->pieces[t_sq];
-        ASSERT(PceValidEmptyOffbrd(pce));
+        ASSERT(PieceEmptyOrOffbrd(pce));
         while(pce != OFFBOARD) {
             if(pce != EMPTY) {
                 if(IsRQ(pce) && PieceCol[pce] == side) {
@@ -73,7 +73,7 @@ int SqAttacked(const int sq, const int side, const BoardState *pos) {
         t_sq = sq + dir;
         ASSERT(SqIs120(t_sq));
         pce = pos->pieces[t_sq];
-        ASSERT(PceValidEmptyOffbrd(pce));
+        ASSERT(PieceEmptyOrOffbrd(pce));
         while(pce != OFFBOARD) {
             if(pce != EMPTY) {
                 if(IsBQ(pce) && PieceCol[pce] == side) {
@@ -90,14 +90,12 @@ int SqAttacked(const int sq, const int side, const BoardState *pos) {
     // kings
     for(index = 0; index < 8; ++index) {
         pce = pos->pieces[sq + KiDir[index]];
-        ASSERT(PceValidEmptyOffbrd(pce));
+        ASSERT(PieceEmptyOrOffbrd(pce));
         if(pce != OFFBOARD && IsKi(pce) && PieceCol[pce]==side) {
             return TRUE;
         }
     }
-    
     return FALSE;
-    
 }
 
 // loop through array until result is 0, so will loop for each sliding piece for whichever side it is to move
@@ -140,6 +138,7 @@ const int NumDir[13] = {
  3. Killers         Score: 800000 - 900000
  4. HistoryScore    Score: 0 +1 increments
  */
+
 const int VictimScore[13] = { 0, 100, 200, 300, 400, 500, 600, 100, 200, 300, 400, 500, 600 };
 static int MvvLvaScores[13][13];
 
@@ -167,7 +166,7 @@ int MoveExists(BoardState *pos, const int move) {
         if ( !MakeMove(pos,list->moves[MoveNum].move))  {
             continue;
         }
-        TakeMove(pos);
+        TakeBackMove(pos);
         if(list->moves[MoveNum].move == move) {
             return TRUE;
         }
@@ -180,7 +179,7 @@ static void AddQuietMove( const BoardState *pos, int move, MoveList *list ) {
     
     ASSERT(SqOnBoard(FROMSQ(move)));
     ASSERT(SqOnBoard(TOSQ(move)));
-    ASSERT(CheckBoard(pos));
+    ASSERT(BoardListsConsistent(pos));
     ASSERT(pos->ply >=0 && pos->ply < MAXSEARCHDEPTH);
     
     list->moves[list->count].move = move;
@@ -202,7 +201,7 @@ static void AddCaptureMove( const BoardState *pos, int move, MoveList *list ) {
     ASSERT(SqOnBoard(FROMSQ(move)));
     ASSERT(SqOnBoard(TOSQ(move)));
     ASSERT(PieceValid(CAPTURED(move)));
-    ASSERT(CheckBoard(pos));
+    ASSERT(BoardListsConsistent(pos));
     
     // compute mvvlva score
     list->moves[list->count].move = move;
@@ -215,7 +214,7 @@ static void AddEnPassantMove( const BoardState *pos, int move, MoveList *list ) 
     
     ASSERT(SqOnBoard(FROMSQ(move)));
     ASSERT(SqOnBoard(TOSQ(move)));
-    ASSERT(CheckBoard(pos));
+    ASSERT(BoardListsConsistent(pos));
     ASSERT((RanksBrd[TOSQ(move)]==RANK_6 && pos->side == WHITE) || (RanksBrd[TOSQ(move)]==RANK_3 && pos->side == BLACK));
     
     // add mvvlva score
@@ -227,10 +226,10 @@ static void AddEnPassantMove( const BoardState *pos, int move, MoveList *list ) 
 // pawns are tricky because of en passant and promotions, so handled in own function instead of looping through move direction array.
 static void AddWhitePawnCapMove( const BoardState *pos, const int from, const int to, const int cap, MoveList *list ) {
     
-    ASSERT(PieceValidEmpty(cap));
+    ASSERT(PieceEmpty(cap));
     ASSERT(SqOnBoard(from));
     ASSERT(SqOnBoard(to));
-    ASSERT(CheckBoard(pos));
+    ASSERT(BoardListsConsistent(pos));
     
     // promotion
     if(RanksBrd[from] == RANK_7) {
@@ -247,7 +246,7 @@ static void AddWhitePawnMove( const BoardState *pos, const int from, const int t
     
     ASSERT(SqOnBoard(from));
     ASSERT(SqOnBoard(to));
-    ASSERT(CheckBoard(pos));
+    ASSERT(BoardListsConsistent(pos));
     
     // promotion
     if(RanksBrd[from] == RANK_7) {
@@ -262,10 +261,10 @@ static void AddWhitePawnMove( const BoardState *pos, const int from, const int t
 
 static void AddBlackPawnCapMove( const BoardState *pos, const int from, const int to, const int cap, MoveList *list ) {
     
-    ASSERT(PieceValidEmpty(cap));
+    ASSERT(PieceEmpty(cap));
     ASSERT(SqOnBoard(from));
     ASSERT(SqOnBoard(to));
-    ASSERT(CheckBoard(pos));
+    ASSERT(BoardListsConsistent(pos));
     
     // promotion
     if(RanksBrd[from] == RANK_2) {
@@ -282,7 +281,7 @@ static void AddBlackPawnMove( const BoardState *pos, const int from, const int t
     
     ASSERT(SqOnBoard(from));
     ASSERT(SqOnBoard(to));
-    ASSERT(CheckBoard(pos));
+    ASSERT(BoardListsConsistent(pos));
     
     // promotion
     if(RanksBrd[from] == RANK_2) {
@@ -297,7 +296,7 @@ static void AddBlackPawnMove( const BoardState *pos, const int from, const int t
 
 void GenerateAllMoves(const BoardState *pos, MoveList *list) {
     
-    ASSERT(CheckBoard(pos));
+    ASSERT(BoardListsConsistent(pos));
     
     list->count = 0;
     
@@ -345,7 +344,7 @@ void GenerateAllMoves(const BoardState *pos, MoveList *list) {
         // add white kingside castle
         if(pos->castlePerm & WKCA) {
             if(pos->pieces[F1] == EMPTY && pos->pieces[G1] == EMPTY) {
-                if(!SqAttacked(E1,BLACK,pos) && !SqAttacked(F1,BLACK,pos) ) {
+                if(!IsSqAttacked(E1,BLACK,pos) && !IsSqAttacked(F1,BLACK,pos) ) {
                     AddQuietMove(pos, MOVE(E1, G1, EMPTY, EMPTY, MFLAGCA), list);
                 }
             }
@@ -354,7 +353,7 @@ void GenerateAllMoves(const BoardState *pos, MoveList *list) {
         // add white queenside  castle
         if(pos->castlePerm & WQCA) {
             if(pos->pieces[D1] == EMPTY && pos->pieces[C1] == EMPTY && pos->pieces[B1] == EMPTY) {
-                if(!SqAttacked(E1,BLACK,pos) && !SqAttacked(D1,BLACK,pos) ) {
+                if(!IsSqAttacked(E1,BLACK,pos) && !IsSqAttacked(D1,BLACK,pos) ) {
                     AddQuietMove(pos, MOVE(E1, C1, EMPTY, EMPTY, MFLAGCA), list);
                 }
             }
@@ -400,7 +399,7 @@ void GenerateAllMoves(const BoardState *pos, MoveList *list) {
         // add black kingside castle
         if(pos->castlePerm &  BKCA) {
             if(pos->pieces[F8] == EMPTY && pos->pieces[G8] == EMPTY) {
-                if(!SqAttacked(E8,WHITE,pos) && !SqAttacked(F8,WHITE,pos) ) {
+                if(!IsSqAttacked(E8,WHITE,pos) && !IsSqAttacked(F8,WHITE,pos) ) {
                     AddQuietMove(pos, MOVE(E8, G8, EMPTY, EMPTY, MFLAGCA), list);
                 }
             }
@@ -409,7 +408,7 @@ void GenerateAllMoves(const BoardState *pos, MoveList *list) {
         // add black queenside castle
         if(pos->castlePerm &  BQCA) {
             if(pos->pieces[D8] == EMPTY && pos->pieces[C8] == EMPTY && pos->pieces[B8] == EMPTY) {
-                if(!SqAttacked(E8,WHITE,pos) && !SqAttacked(D8,WHITE,pos) ) {
+                if(!IsSqAttacked(E8,WHITE,pos) && !IsSqAttacked(D8,WHITE,pos) ) {
                     AddQuietMove(pos, MOVE(E8, C8, EMPTY, EMPTY, MFLAGCA), list);
                 }
             }
@@ -479,13 +478,13 @@ void GenerateAllMoves(const BoardState *pos, MoveList *list) {
         }
         pce = LoopNonSlidePce[pceIndex++];
     }
-    ASSERT(MoveListOk(list,pos));
+    ASSERT(MoveListValid(list,pos));
 }
 
 // same as generate all moves, but only captures
-void GenerateAllCaps(const BoardState *pos, MoveList *list) {
+void GenerateAllCaptureMoves(const BoardState *pos, MoveList *list) {
     
-    ASSERT(CheckBoard(pos));
+    ASSERT(BoardListsConsistent(pos));
     
     list->count = 0;
     
@@ -605,5 +604,5 @@ void GenerateAllCaps(const BoardState *pos, MoveList *list) {
         
         pce = LoopNonSlidePce[pceIndex++];
     }
-    ASSERT(MoveListOk(list,pos));
+    ASSERT(MoveListValid(list,pos));
 }

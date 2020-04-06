@@ -75,6 +75,28 @@ U64 IsolatedBBMask[64];
  - - - 1 - 1 - -
  */
 
+void InitHashTable(HashTable *table, const int MB) {
+    
+    // calculate number of entries and decrement by 2 to be sure allocating enough memory
+    int HashSize = 0x100000 * MB;
+    table->numEntries = HashSize / sizeof(HashEntry);
+    table->numEntries -= 2;
+    
+    // allocate memory then free that memory
+    table->hashEntry = (HashEntry *) malloc(table->numEntries * sizeof(HashEntry));
+    if(table->hashEntry!=NULL) {
+        free(table->hashEntry);
+    }
+    
+    if(table->hashEntry == NULL) {
+        printf("Hash Allocation Failed, trying %dMB...\n",MB/2);
+        InitHashTable(table,MB/2);
+    } else {
+        ClearHashTable(table);
+        printf("HashTable init complete with %d entries\n",table->numEntries);
+    }
+}
+
 void InitEvalMasks() {
     
     int sq, tsq, r, f;
@@ -151,7 +173,7 @@ void InitEvalMasks() {
 }
 
 // get file and rank for each square
-void InitFilesRanksBrd() {
+void InitFilesRanks() {
     
     int index = 0;
     int file = FILE_A;
@@ -237,7 +259,7 @@ void Initialize() {
     InitSq120To64();
     InitBitMasks();
     InitHashKeys();
-    InitFilesRanksBrd();
+    InitFilesRanks();
     InitEvalMasks();
     InitMvvLva();
 }

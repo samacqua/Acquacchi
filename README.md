@@ -20,6 +20,28 @@ The engine is much better than me (1200ish) and seems to consistently beat Fairy
     * Piece Square Tables
     * Evaluates open files, isolated, and passed pawns
     
+## Features For Future Versions
+* XBoard Compatible (current XBoard compatability is broken)
+* Search
+    * Parallel Search (Lazy SMP)
+    * Faster sorting algorithm for move ordering
+    * Handle PV clearance between moves better
+    * Principal Variation Search
+    * Improve Hash Table
+    * Improve Quiescence Search
+    * Search Extensions
+    * Root Move Ordering
+* Move Generation
+    * Bitboard Move Generation
+* Evaluation
+    * Understand Double Pawns
+    * Better Endgame Evaluation (only endgame evaluation now is King)
+* More Efficient Time Management
+* Opening Book and Endgame Tablebase
+* When Parsing FEN, Use Half-Move Clock and Full-Move Counter
+* Fix malloc Errors
+    
+    
 ## Best Resources:
 * [Chess Programming Wiki](https://www.chessprogramming.org/Main_Page)
 * [Tom's Simple Chess Program (In C)](http://www.tckerrigan.com/Chess/TSCP/)

@@ -155,7 +155,7 @@ typedef struct {
     
     // hash table for storing searched moves and PV, PVArray for storing exact PV
     HashTable hashTable[1];
-    int PvArray[MAXSEARCHDEPTH];
+    int PVArray[MAXSEARCHDEPTH];
     
     // if move beats alpha, the piece and its to square in searchHistory incremented by 1 (https://www.chessprogramming.org/History_Heuristic)
     int searchHistory[13][BRD_SQ_NUM];
