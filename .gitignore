@@ -56,4 +56,8 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+# Other
+*.DS_Store
+Acquacchi
+
 # End of https://www.gitignore.io/api/c

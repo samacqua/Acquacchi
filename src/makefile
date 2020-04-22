@@ -1,6 +1,6 @@
-secs : bitboards.o board.o data.o evaluation.o hash.o init.o makemove.o \
+Acquacchi : bitboards.o board.o data.o evaluation.o hash.o init.o makemove.o \
 	misc.o movegen.o perft.o search.o secs.o protocols.o validate.o
-		cc -o secs bitboards.o board.o data.o evaluation.o hash.o init.o makemove.o \
+		cc -o Acquacchi bitboards.o board.o data.o evaluation.o hash.o init.o makemove.o \
 	misc.o movegen.o perft.o search.o secs.o protocols.o validate.o
 
 bitboards.o : bitboards.c defs.h data.h protos.h
@@ -32,7 +32,7 @@ protocols.o : protocols.c defs.h data.h protos.h
 validate.o : validate.c defs.h data.h protos.h
 		cc -c validate.c 
 clean :
-		rm secs bitboards.o board.o data.o evaluation.o hash.o init.o makemove.o \
+		rm Acquacci bitboards.o board.o data.o evaluation.o hash.o init.o makemove.o \
     misc.o movegen.o perft.o search.o secs.o protocols.o validate.o
 
 # OBJECT_FILES = \
@@ -55,17 +55,17 @@ clean :
 # 	validate.o \
 # 	xboard.o
 
-# all: secs
+# all: Acquacchi
 
 # tscp: $(OBJECT_FILES)
-# 	g++ -O3 -o secs $(OBJECT_FILES)
+# 	g++ -O3 -o Acquacchi $(OBJECT_FILES)
 
 # %.o: %.c data.h defs.h protos.h
 # 	g++ -O3 -x c -c $< -o $@
 
 # clean:
 # 	rm -f *.o
-# 	rm -f secs
+# 	rm -f Acquacchi
 
 # all:
-# 	gcc xboard.c secs.c uci.c evaluate.c pvtable.c init.c bitboards.c hashkeys.c board.c data.c attack.c io.c movegen.c validate.c makemove.c perft.c search.c misc.c -o secs -O2
+# 	gcc xboard.c secs.c uci.c evaluate.c pvtable.c init.c bitboards.c hashkeys.c board.c data.c attack.c io.c movegen.c validate.c makemove.c perft.c search.c misc.c -o Acquacchi -O2
