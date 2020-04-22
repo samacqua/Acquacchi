@@ -1,4 +1,4 @@
-# acquacchi
+# Acquacchi
 A chess engine written in C during Spring break to help get through Coronavirus quarantine. I've realized I'm not great at chess, so I've tried to pretend I am through this engine (also to practice C). The name comes from a mash of Acqua--meaning water in Italian (tangentially related to the custom of naming chess engines after fish and also the beginning of my last name)--and Scacchi--meaning chess in Italian.
 
 ## Playing Strength
