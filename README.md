@@ -1,8 +1,8 @@
-# SECS - Simple Engine for Chess by Sam
-A chess engine written in C during Spring break to help get through Corona Virus quarantine. I've realized I'm not great at chess, so I've tried to pretend I am through this engine (also to learn C).
+# acquacchi
+A chess engine written in C during Spring break to help get through Coronavirus quarantine. I've realized I'm not great at chess, so I've tried to pretend I am through this engine (also to practice C). The name comes from a mash of Acqua--meaning water in Italian (tangentially related to the custom of naming chess engines after fish and also the beginning of my last name)--and Scacchi--meaning chess in Italian.
 
 ## Playing Strength
-The engine is much better than me (1200ish) and seems to consistently beat Fairy Max (1940) on 1+1 time control. So who knows, but it's solid.
+Acquacchi is much better than me (1200ish) and seems to consistently beat Fairy Max (1940) on 1+1 time control. So there isn't any rigorous controlled testing, but I would guess it is around 2000 ELO.
 
 ## Engine Features:
 * UCI compatible
