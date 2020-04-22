@@ -373,7 +373,7 @@ void SearchPosition(BoardState *pos, Search *info) {
         printf("move %s\n",PrMove(bestMove));
         MakeMove(pos, bestMove);
     } else {
-        printf("\n\nSECS makes move %s.",PrMove(bestMove));
+        printf("\n\nAcquacchi moves %s.",PrMove(bestMove));
         MakeMove(pos, bestMove);
         PrintBoard(pos);
     }

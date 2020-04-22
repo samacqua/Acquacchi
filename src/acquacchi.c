@@ -1,4 +1,4 @@
-// secs.c
+// acquacchi.c
 
 #include "stdio.h"
 #include "stdlib.h"
@@ -23,7 +23,9 @@ int main() {
     setbuf(stdin, NULL);
     setbuf(stdout, NULL);
     
-    printf("Welcome to SECS - a Simple Engine for Chess by Sam! Type 'secs' for terminal mode...\n");
+    printf("♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜ ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜ ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜\n\n");
+    printf("Welcome to Acquacchi!\nType 'play' to play Acquacchi in terminal.\n\n");
+    printf("♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜ ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜ ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜\n\n");
     
     char line[256];
     while (TRUE) {
@@ -42,7 +44,7 @@ int main() {
             XBoard_Loop(pos, info);
             if(info->quit == TRUE) break;
             continue;
-        } else if (!strncmp(line, "secs",4))	{
+        } else if (!strncmp(line, "play",4))	{
             Console_Loop(pos, info);
             if(info->quit == TRUE) break;
             continue;

@@ -1,7 +1,7 @@
 Acquacchi : bitboards.o board.o data.o evaluation.o hash.o init.o makemove.o \
-	misc.o movegen.o perft.o search.o secs.o protocols.o validate.o
+	misc.o movegen.o perft.o search.o acquacchi.o protocols.o validate.o
 		cc -o Acquacchi bitboards.o board.o data.o evaluation.o hash.o init.o makemove.o \
-	misc.o movegen.o perft.o search.o secs.o protocols.o validate.o
+	misc.o movegen.o perft.o search.o acquacchi.o protocols.o validate.o
 
 bitboards.o : bitboards.c defs.h data.h protos.h
 		cc -c bitboards.c
@@ -25,15 +25,15 @@ perft.o : perft.c defs.h data.h protos.h
 		cc -c perft.c
 search.o : search.c defs.h data.h protos.h
 		cc -c search.c
-secs.o : secs.c defs.h data.h protos.h
-		cc -c secs.c
+acquacchi.o : acquacchi.c defs.h data.h protos.h
+		cc -c acquacchi.c
 protocols.o : protocols.c defs.h data.h protos.h
 		cc -c protocols.c
 validate.o : validate.c defs.h data.h protos.h
 		cc -c validate.c 
 clean :
 		rm Acquacci bitboards.o board.o data.o evaluation.o hash.o init.o makemove.o \
-    misc.o movegen.o perft.o search.o secs.o protocols.o validate.o
+    misc.o movegen.o perft.o search.o acquacchi.o protocols.o validate.o
 
 # OBJECT_FILES = \
 # 	attack.o \
@@ -50,7 +50,7 @@ clean :
 # 	perft.o \
 # 	pvtable.o \
 # 	search.o \
-# 	secs.o \
+# 	acquacchi.o \
 # 	uci.o \
 # 	validate.o \
 # 	xboard.o
@@ -68,4 +68,4 @@ clean :
 # 	rm -f Acquacchi
 
 # all:
-# 	gcc xboard.c secs.c uci.c evaluate.c pvtable.c init.c bitboards.c hashkeys.c board.c data.c attack.c io.c movegen.c validate.c makemove.c perft.c search.c misc.c -o Acquacchi -O2
+# 	gcc xboard.c acquacchi.c uci.c evaluate.c pvtable.c init.c bitboards.c hashkeys.c board.c data.c attack.c io.c movegen.c validate.c makemove.c perft.c search.c misc.c -o Acquacchi -O2

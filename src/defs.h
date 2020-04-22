@@ -32,7 +32,7 @@ typedef unsigned long long U64;
 
 // MARK: - 3. Program Constants
 
-#define NAME "SECS 1.0"
+#define NAME "Acquacchi 1.0"
 #define BRD_SQ_NUM 120
 /* 10x12 board configuration used for edge detection
  x  x  x  x  x  x  x  x  x  x

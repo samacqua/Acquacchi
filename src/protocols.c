@@ -229,15 +229,15 @@ int checkresult(BoardState *pos) {
     ASSERT(BoardListsConsistent(pos));
     
     if (pos->fiftyMove > 100) {
-        printf("1/2-1/2 {fifty move rule (claimed by SECS)}\n"); return TRUE;
+        printf("1/2-1/2 {fifty move rule (claimed by Acquacchi)}\n"); return TRUE;
     }
     
     if (ThreeFoldRep(pos) >= 2) {
-        printf("1/2-1/2 {3-fold repetition (claimed by SECS)}\n"); return TRUE;
+        printf("1/2-1/2 {3-fold repetition (claimed by Acquacchi)}\n"); return TRUE;
     }
     
     if (DrawMaterial(pos) == TRUE) {
-        printf("1/2-1/2 {insufficient material (claimed by SECS)}\n"); return TRUE;
+        printf("1/2-1/2 {insufficient material (claimed by Acquacchi)}\n"); return TRUE;
     }
     
     MoveList list[1];
@@ -263,12 +263,12 @@ int checkresult(BoardState *pos) {
     int InCheck = IsSqAttacked(pos->KingSq[pos->side],pos->side^1,pos);
     if(InCheck == TRUE)    {
         if(pos->side == WHITE) {
-            printf("0-1 {black mates (claimed by SECS)}\n");return TRUE;
+            printf("0-1 {black mates (claimed by Acquacchi)}\n");return TRUE;
         } else {
-            printf("0-1 {white mates (claimed by SECS)}\n");return TRUE;
+            printf("0-1 {white mates (claimed by Acquacchi)}\n");return TRUE;
         }
     } else {
-        printf("\n1/2-1/2 {stalemate (claimed by SECS)}\n");return TRUE;
+        printf("\n1/2-1/2 {stalemate (claimed by Acquacchi)}\n");return TRUE;
     }
     return FALSE;
 }
@@ -463,8 +463,10 @@ void XBoard_Loop(BoardState *pos, Search *info) {
 // play against engine in console
 void Console_Loop(BoardState *pos, Search *info) {
     
-    printf("Welcome to SECS In Console Mode!\n");
-    printf("Type help for commands\n\n");
+    printf("\n--------------------\n");
+    printf("   ♔ Acquacchi ♕\n");
+    printf("--------------------\n\n");
+    printf("For a list of commands, type help\n\n");
     
     info->GAME_MODE = CONSOLEMODE;
     info->POST_THINKING = TRUE;
@@ -495,7 +497,7 @@ void Console_Loop(BoardState *pos, Search *info) {
             SearchPosition(pos, info);
         }
         
-        printf("\nSECS > ");
+        printf("\nAcquacchi > ");
         
         fflush(stdout);
         
